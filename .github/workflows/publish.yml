@@ -20,6 +20,9 @@ jobs:
 
     steps:
 
+    - name: Print Workflow Run ID
+      run: echo "Workflow Run ID: ${{ github.event.workflow_run.id }}"
+      
     - name: Download all the dists
       uses: actions/download-artifact@v4
       with:
