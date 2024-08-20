@@ -5,10 +5,14 @@ description = "LLM Foundation Tools"
 name = "llm_foundation"
 requires-python = ">= 3.11"
 version = "0.0.1"
+dynamic = ["readme"]
 
 [build-system]
 build-backend = "hatchling.build"
 requires = ["hatchling"]
+
+[tool.setuptools.dynamic]
+readme = {file = "README.md", content-type = "text/markdown"}
 
 [tool.pixi.project]
 channels = ["conda-forge"]
