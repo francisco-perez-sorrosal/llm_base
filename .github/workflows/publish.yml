@@ -30,6 +30,7 @@ jobs:
         name: python-package-distributions
         repository: francisco-perez-sorrosal/llm_foundation
         run-id: ${{ github.event.workflow_run.id }}
+        github-token: ${{ secrets.GITHUB_TOKEN }}
         path: dist/
 
     - name: Publish distribution 📦 to TestPyPI
