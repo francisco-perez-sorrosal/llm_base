@@ -1,0 +1,34 @@
+name: Build Project
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up pixi
+      uses: prefix-dev/setup-pixi@v0.8.0
+      with:
+        environments: ${{ matrix.environment }}
+
+    - name: Install project dependencies
+      run: |
+        pixi install
+
+    - name: Run small test
+      run: |
+        pixi run llm
+
+    - name: Run build
+      run: |
+        pixi run python -m build --sdist
