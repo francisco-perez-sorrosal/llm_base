@@ -25,6 +25,7 @@ jobs:
       with:
         name: python-package-distributions
         repository: francisco-perez-sorrosal/llm_foundation
+        run-id: ${{ github.event.workflow_run.id }}
         path: dist/
 
     - name: Publish distribution 📦 to TestPyPI
