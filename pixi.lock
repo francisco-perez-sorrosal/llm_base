@@ -315,7 +315,7 @@ packages:
   name: llm-foundation
   version: 0.0.1
   path: .
-  sha256: 0dece43b1c6432e1ab7ed0932abc74d044c14439af1063718cbfd5e4c525dbc1
+  sha256: f57e1da19e40eadec5030dcf5085220edaae872c10fba9513872cce0d9cc3228
   requires_dist:
   - coloredlogs>=15.0.1,<16
   - loadenv>=0.1.1,<0.2
