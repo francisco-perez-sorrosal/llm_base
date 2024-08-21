@@ -1,6 +1,6 @@
 [project]
 authors = [{name = "Francisco Perez-Sorrosal", email = "fperezsorrosal@gmail.com"}]
-dependencies = ["coloredlogs>=15.0.1,<16", "loadenv>=0.1.1,<0.2", "build>=1.2.1,<2"]
+dependencies = ["coloredlogs>=15.0.1,<16", "loadenv>=0.1.1,<0.2", "build>=1.2.1,<2", "python-dotenv>=1.0.1,<2", "openai>=1.42.0,<2", "pydantic>=2.8.2,<3", "langchain-openai>=0.1.22,<0.2"]
 description = "LLM Foundation Tools"
 name = "llm_foundation"
 requires-python = ">= 3.11"

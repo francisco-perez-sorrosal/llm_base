@@ -7,6 +7,7 @@ from logging.config import fileConfig
 from typing import List
 
 import coloredlogs
+from dotenv import load_dotenv, find_dotenv
 
 # import sys
 # import pkg_resources  # type: ignore
@@ -15,6 +16,8 @@ import coloredlogs
 # else:
 #     import importlib_metadata as metadata
 # __version__: str = metadata.version(__name__) #"0.0.1"  # pkg_resources.get_distribution("llm_base").version
+
+load_dotenv(find_dotenv()) # read local .env file and put it in os.environ
 
 __all__: List[str] = []
 __copyright__: str = "Copyright 2024, Francisco Perez-Sorrosal."
