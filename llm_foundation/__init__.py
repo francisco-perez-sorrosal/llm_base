@@ -17,6 +17,7 @@ from dotenv import load_dotenv, find_dotenv
 #     import importlib_metadata as metadata
 # __version__: str = metadata.version(__name__) #"0.0.1"  # pkg_resources.get_distribution("llm_base").version
 
+
 load_dotenv(find_dotenv()) # read local .env file and put it in os.environ
 
 __all__: List[str] = []
