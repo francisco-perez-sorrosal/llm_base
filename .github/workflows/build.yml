@@ -27,9 +27,9 @@ jobs:
       run: |
         pixi run llm
 
-    - name: Bump version
-      run: |
-        pixi project version patch
+    # - name: Bump version
+    #   run: |
+    #     pixi project version patch
 
     - name: Run build
       run: |

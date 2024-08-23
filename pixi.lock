@@ -66,6 +66,8 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/50/f8/595cff3ae7219faaf378392d3fb3998b1de7082c270811e9b0a7aef179ca/langchain_core-0.2.34-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/bb/82/6d6cb06f3fa41610918815a852ac7a2f067ec79df76c8d651014f12d6c31/langchain_openai-0.1.22-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/06/76/9e0ca1b8881f64bf927f2205bf6c43a085c04646a71d911b3c05d76e90bb/langchain_text_splitters-0.2.2-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/e5/32/0c0277eff76a7c423a462d4b513387878e8218d437364ee22fe42d3cbb22/langgraph-0.2.12-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/6e/d6/cdc39d73cf414a724ab0abf7d291c5ebb1cffec4961cbebd2b60d553aa06/langgraph_checkpoint-1.0.5-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/b5/af/b82590f2830559a0c2438e96d110bfeb002b2687c08a57bf117d9ea6b714/langsmith-0.1.101-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/d0/ba/e29b2a5d12d5fad9c037ad7d5c3dffb22864d6511310bffa414c56408995/loadenv-0.1.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/3c/78/c1de55eb3311f2c200a8b91724414b8d6f5ae78891c15d9d936ea43c3dba/marshmallow-3.22.0-py3-none-any.whl
@@ -765,6 +767,23 @@ packages:
   - langchain-core>=0.2.10,<0.3.0
   requires_python: '>=3.8.1,<4.0'
 - kind: pypi
+  name: langgraph
+  version: 0.2.12
+  url: https://files.pythonhosted.org/packages/e5/32/0c0277eff76a7c423a462d4b513387878e8218d437364ee22fe42d3cbb22/langgraph-0.2.12-py3-none-any.whl
+  sha256: add332b37d89ed3b0ab26621aa139e4400704c5f6c452a556b840285e23c9bd1
+  requires_dist:
+  - langchain-core>=0.2.27,<0.3
+  - langgraph-checkpoint>=1.0.2,<2.0.0
+  requires_python: '>=3.9.0,<4.0'
+- kind: pypi
+  name: langgraph-checkpoint
+  version: 1.0.5
+  url: https://files.pythonhosted.org/packages/6e/d6/cdc39d73cf414a724ab0abf7d291c5ebb1cffec4961cbebd2b60d553aa06/langgraph_checkpoint-1.0.5-py3-none-any.whl
+  sha256: 093016941aae71291824d1d98030a5e54cf8fdf370eca8ca9a90c907f216a99e
+  requires_dist:
+  - langchain-core>=0.2.22,<0.3
+  requires_python: '>=3.9.0,<4.0.0'
+- kind: pypi
   name: langsmith
   version: 0.1.101
   url: https://files.pythonhosted.org/packages/b5/af/b82590f2830559a0c2438e96d110bfeb002b2687c08a57bf117d9ea6b714/langsmith-0.1.101-py3-none-any.whl
@@ -938,9 +957,9 @@ packages:
   timestamp: 1716874187109
 - kind: pypi
   name: llm-foundation
-  version: 0.0.3
+  version: 0.0.4
   path: .
-  sha256: b69e18767ba703a56ed93809a01da328eb92a622dbf5ca48741abb2a77718663
+  sha256: 40fad6b08e9120cc81db13b71d434acbbec0c39243a4a202ba4f3bb46a71d214
   requires_dist:
   - coloredlogs>=15.0.1,<16
   - loadenv>=0.1.1,<0.2
@@ -952,6 +971,7 @@ packages:
   - ipykernel>=6.29.5,<7
   - langchain-community>=0.2.12,<0.3
   - beautifulsoup4>=4.12.3,<5
+  - langgraph>=0.2.12,<0.3
   requires_python: '>=3.10'
   editable: true
 - kind: pypi
