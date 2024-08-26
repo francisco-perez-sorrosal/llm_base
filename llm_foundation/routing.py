@@ -7,6 +7,7 @@ from langchain.schema.agent import AgentFinish
 from langgraph.prebuilt import ToolInvocation, ToolExecutor
 
 from llm_foundation import logger
+from llm_foundation.utils import banner
 
 # def route(result):
 #     if isinstance(result, AgentFinish):
@@ -24,18 +25,17 @@ class ToolMaster(Runnable[AIMessage, List], ABC):
     def __init__(self, available_tools):
         self.tool_executor = ToolExecutor(available_tools)
     
-    # Define the function to execute tools
+    @banner(text="Pre Call Tool", level=2)
     def pre_call_tool(self, state):
-        logger.info("-------------- Pre Call Tool ---------------")
         messages = state["messages"]
         # Based on the continue condition
         # we know the last message involves a function call
         last_message = messages[-1]
         # We construct an ToolInvocation from the function_call
         return last_message
-        
+
+    @banner(text="Post Call Tool", level=2)
     def post_call_tool(self, state, responses):
-        logger.info("-------------- Post Call Tool ---------------")
         tool_messages = []
         for response in responses:
             tool_call_id, tool_name, response = response
@@ -46,10 +46,10 @@ class ToolMaster(Runnable[AIMessage, List], ABC):
 
         return {
             "last_node": "call_tools",
-            "messages": tool_message,  # We return a list, because this will get added to the existing list of messages
+            "messages": tool_messages,  # We return a list, because this will get added to the existing list of messages
         }
 
-        
+    @banner(text="Call Tool", level=2)
     def _call_tool(self, tool_call_definition):
         logger.info("-------------- Call Tool ---------------")
         action = ToolInvocation(
@@ -62,7 +62,6 @@ class ToolMaster(Runnable[AIMessage, List], ABC):
         logger.info("-------------- End Call Tool ---------------")
         return (tool_call_definition["id"], tool_call_definition["name"], response)
 
-
     def call_tools(self, message: AIMessage) -> List:
         responses = []
         for tool_call_definition in message.tool_calls:
@@ -70,11 +69,12 @@ class ToolMaster(Runnable[AIMessage, List], ABC):
             responses.append(self._call_tool(tool_call_definition))
         return responses
 
-
-    def agentic_call_tool(self, state):
+    @banner(text="Agentic Tool Call", level=1)
+    def agentic_tool_call(self, state):
         message = self.pre_call_tool(state)
         responses = self.call_tools(message)
         return self.post_call_tool(state, responses)
+
 
     # Runnable implementation
     def invoke(self, input: AIMessage, config: Optional[RunnableConfig] = None) -> List:
