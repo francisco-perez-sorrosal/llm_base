@@ -176,10 +176,22 @@ class MultiTreePlan(BaseModel):
 
         return leaf_steps + dependant_steps
     
+    def print_multi_tree(self):
+        """Prints the multi-root node trees in a visually appealing format."""
+        def print_node(node, indent):
+            print(f"{indent}{node.id}: {node.description}")
+            for child in node.depending_steps:
+                print_node(child, indent + "  ")
 
-DEFAULT_PLAN_EXTRACTOR_SYS_TEMPLATE = """A text document depicting a plan to follow will be passed to you. \
-The plan would depict a structure of a directed acyclic graph (DAG) where each step has a description and dependencies (parents and children) on other steps. \
-First assign a unique id to each step in the plan. \
+        for root in self.root_nodes:
+            print_node(root, "")
+    
+
+DEFAULT_PLAN_EXTRACTOR_SYS_TEMPLATE = """You are an expert in planning. When a text document depicting a plan is passed to you, \
+you are very skilled at extracting the hierarchical plan steps from it. \
+The hierarchycal structure can be described either in the form of a tree or a directed acyclic graph (DAG) \
+Each step has a description and dependencies (parents and children) on other steps. \
+First, assign a unique id to each step in the plan. \
 Then think carefully about what steps need to happen before in the plan in order to assign the correct parents and children ids to each step. \
 Return the list of steps that conform the plan. \
 If no plan steps are mentioned or identified, just return an empty list. \
@@ -207,20 +219,18 @@ class PlanExtractor(ABC):
         )
 
     def extract(self, text: str):
-        """Extracts from the text passed an itemized list of plan steps as text."""
+        """Extracts from the text passed an itemized list of plan steps."""
         
         # Building chain
         prompt = ChatPromptTemplate.from_messages([
             ("system", self.sys_template),
-            ("user", "{input}")
+            ("user", "Extract the hierarchical plan steps from this text: {input}")
         ])
-
-        print(f"Type plan: {self.plan}")
         parser = PydanticOutputFunctionsParser(pydantic_schema=self.plan) if self.use_pydantic_output else JsonOutputFunctionsParser()
         extraction_chain = prompt | self.lm | parser
         
         # Extraction
-        logger.info(f"Extracting {self.plan}")
+        logger.info(f"Extracting plan steps")
         extracted_steps = extraction_chain.invoke(text)
 
         return extracted_steps

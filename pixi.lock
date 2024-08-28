@@ -957,9 +957,9 @@ packages:
   timestamp: 1716874187109
 - kind: pypi
   name: llm-foundation
-  version: 0.0.7
+  version: 0.0.8
   path: .
-  sha256: 50ce404d1f6500aadd693b8c68e77ea7b277cc4d98ec8708245f5d5459345826
+  sha256: 192c42cc65331f0700cbc1d3ac60f0aa9b21624dbe8836455da091d0092e5f9c
   requires_dist:
   - coloredlogs>=15.0.1,<16
   - loadenv>=0.1.1,<0.2
