@@ -51,7 +51,6 @@ class ToolMaster(Runnable[AIMessage, List], ABC):
 
     @banner(text="Call Tool", level=2)
     def _call_tool(self, tool_call_definition):
-        logger.info("-------------- Call Tool ---------------")
         action = ToolInvocation(
             tool=tool_call_definition["name"],
             tool_input=tool_call_definition["args"],
@@ -59,7 +58,6 @@ class ToolMaster(Runnable[AIMessage, List], ABC):
         # We call the tool_executor and get back a response
         response = self.tool_executor.invoke(action)
         logger.info(f"Response ({type(response)}): {response}")
-        logger.info("-------------- End Call Tool ---------------")
         return (tool_call_definition["id"], tool_call_definition["name"], response)
 
     def call_tools(self, message: AIMessage) -> List:

@@ -1,14 +1,15 @@
 from abc import ABC
-from typing import List, Optional, Sequence, Union, get_origin
+from collections import defaultdict
+from typing import List, Dict, Optional, Sequence, Union, get_origin
 
 from langchain_core.tools import StructuredTool
 from langchain_core.utils.function_calling import convert_to_openai_function
-from langchain.output_parsers.openai_functions import JsonKeyOutputFunctionsParser, JsonOutputFunctionsParser
+from langchain.output_parsers.openai_functions import JsonKeyOutputFunctionsParser, JsonOutputFunctionsParser, PydanticOutputFunctionsParser
 from langchain.prompts import ChatPromptTemplate
 from langchain.schema.runnable import RunnableLambda
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import WebBaseLoader
-from pydantic import BaseModel
+from langchain.pydantic_v1 import BaseModel, Field
 
 from llm_foundation import logger
 
@@ -25,7 +26,7 @@ class CitedDocuments(BaseModel):
     cites: List[Citation]
 
 
-DEFAULT_SYS_TEMPLATE = """A text document will be passed to you. Extract from it all papers \
+DEFAULT_WEB_EXTRACTOR_SYS_TEMPLATE = """A text document will be passed to you. Extract from it all papers \
 that are mentioned/cited by the text. \
 Do not extract the name of the article itself. If no papers are mentioned \
 you don't need to extract any. Just return an empty list. \
@@ -101,6 +102,153 @@ class WebPageContentExtractor(ABC):
         return extracted_docs
 
     @classmethod
-    def build_tool(cls, lm, entity_to_extract: BaseModel, sys_template: str = DEFAULT_SYS_TEMPLATE):
+    def build_tool(cls, lm, entity_to_extract: BaseModel, sys_template: str = DEFAULT_WEB_EXTRACTOR_SYS_TEMPLATE):
         extractor = WebPageContentExtractor(lm, entity_to_extract, sys_template)
         return StructuredTool.from_function(extractor.extract)
+
+
+class Step(BaseModel):
+    """Information about a plan step, referencing its parents step ids (dependent steps) and the children step ids (other steps this node depends on)."""
+    id: str
+    description: str
+    dependent_steps: List[str] = Field(..., description="A list of step ids representing the actions that will happen after what is described this step. If the list is empty, the step is a root node.")
+    depending_steps: List[str] = Field(..., description="A list of step ids representing the actions that need to happen before what is described this step. If the list is empty, the step is a leaf node.")
+    
+
+class Plan(BaseModel):
+    """Plan description depicted as a directed acyclic graph (DAG) where each step has a causal dependency on other steps."""
+    plan: List[Step]
+
+class MultiTreePlan(BaseModel):
+    root_nodes: List[Step]
+    
+    def traverse_depth_first(self):
+        """Traverses the root nodes of the MultiTreePlan in depth-first order."""
+        visited = set()
+
+        def dfs(node):
+            visited.add(node.id)
+            print(node.id)
+
+            for child in node.depending_steps:
+                if child.id not in visited:
+                    dfs(child)
+
+        for root in self.root_nodes:
+            dfs(root)
+
+    def traverse_breadth_first(self):
+        """Traverses the root nodes of the MultiTreePlan in breadth-first order."""
+        visited = set()
+        queue = []
+
+        for root in self.root_nodes:
+            queue.append(root)
+
+        while queue:
+            node = queue.pop(0)
+            visited.add(node.id)
+            print(node.id)
+
+            for child in node.depending_steps:
+                if child.id not in visited:
+                    queue.append(child)
+
+    def traverse_leafs_first_dependants(self):
+        """Traverses the root nodes of the MultiTreePlan in depth-first order."""
+        visited = set()
+        leaf_steps = []
+        dependant_steps = []
+
+        def dfs(node):
+            visited.add(node.id)
+
+            if not node.depending_steps:
+                leaf_steps.append(node)
+            else:
+                for child in node.depending_steps:
+                    if child.id not in visited:
+                        dfs(child)
+                dependant_steps.append(node)
+
+        for root in self.root_nodes:
+            dfs(root)
+
+        return leaf_steps + dependant_steps
+    
+
+DEFAULT_PLAN_EXTRACTOR_SYS_TEMPLATE = """A text document depicting a plan to follow will be passed to you. \
+The plan would depict a structure of a directed acyclic graph (DAG) where each step has a description and dependencies (parents and children) on other steps. \
+First assign a unique id to each step in the plan. \
+Then think carefully about what steps need to happen before in the plan in order to assign the correct parents and children ids to each step. \
+Return the list of steps that conform the plan. \
+If no plan steps are mentioned or identified, just return an empty list. \
+Do not make up or guess ANY extra information. Only extract the steps exactly as they are in the text."""
+
+
+class PlanExtractor(ABC):
+    
+    def __init__(self, lm, plan: BaseModel, sys_template: str, use_pydantic_output: bool = False):
+        self.lm = lm
+        self.plan: BaseModel = plan
+        self.sys_template = sys_template
+        self.use_pydantic_output = use_pydantic_output
+        
+        # Preparing function call
+        openai_fn_desc = convert_to_openai_function(self.plan)
+        extraction_function = [
+            openai_fn_desc
+        ]
+        fn_call = {"name": openai_fn_desc["name"]}
+
+        self.lm = self.lm.bind(
+            functions=extraction_function,
+            function_call=fn_call
+        )
+
+    def extract(self, text: str):
+        """Extracts from the text passed an itemized list of plan steps as text."""
+        
+        # Building chain
+        prompt = ChatPromptTemplate.from_messages([
+            ("system", self.sys_template),
+            ("user", "{input}")
+        ])
+
+        print(f"Type plan: {self.plan}")
+        parser = PydanticOutputFunctionsParser(pydantic_schema=self.plan) if self.use_pydantic_output else JsonOutputFunctionsParser()
+        extraction_chain = prompt | self.lm | parser
+        
+        # Extraction
+        logger.info(f"Extracting {self.plan}")
+        extracted_steps = extraction_chain.invoke(text)
+
+        return extracted_steps
+
+    @classmethod
+    def build_tool(cls, lm, entity_to_extract: BaseModel, sys_template: str = DEFAULT_PLAN_EXTRACTOR_SYS_TEMPLATE, use_pydantic_output:bool = False):
+        extractor = PlanExtractor(lm, entity_to_extract, sys_template, use_pydantic_output)
+        return StructuredTool.from_function(extractor.extract)
+    
+    @classmethod
+    def build_multi_tree_plan(cls, data: Union[dict, Plan]) -> MultiTreePlan:
+        # Convert json object to Plan
+        if isinstance(data, dict):
+            data = Plan.parse_obj(data)
+            
+        id_to_step = {step.id: step for step in data.plan}
+        child_to_parents = defaultdict(list)
+
+        # Track parent-child relationships
+        for step in data.plan:
+            for dep in step.depending_steps:
+                child_to_parents[dep].append(step.id)
+
+        # Identify root nodes (steps without any parent dependencies)
+        root_nodes = [step for step in data.plan if step.id not in child_to_parents]
+
+        # Build the tree by linking steps to their children
+        for step in data.plan:
+            step.depending_steps = [id_to_step[dep] for dep in step.depending_steps]
+
+        return MultiTreePlan(root_nodes=root_nodes) 
