@@ -16,7 +16,13 @@ def get_available_models():
 
 
 def get_model_names(filters: List[str] = []):
-    filter_f = lambda model: all([model.id.startswith(filter) for filter in filters])
+    
+    def filter_f(model):
+        for filter in filters:
+            if filter in model.id:
+                return True
+        return False    
+    
     return [model.id for model in get_available_models() if filter_f(model)]
     
     

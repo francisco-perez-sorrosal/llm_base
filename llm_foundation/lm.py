@@ -11,16 +11,18 @@ def get_model_catalog(provider: Provider, name_filters: List[str] = []):
     def get_model_names(provider: Provider, filters: List[str] = []):
         match provider:
             case Provider.LC:
-                return llm_openai.get_model_names(name_filters)
+                return llm_openai.get_model_names(filters)
             case Provider.OpenAI:
-                return llm_openai.get_model_names(name_filters)
+                return llm_openai.get_model_names(filters)
+            case Provider.Autogen:
+                return llm_openai.get_model_names(filters)            
             case _:
                 raise ValueError("Invalid backend provider")
 
     catalog = {}
     for provider in Provider:
         print(provider, provider.name)
-        for model_name in get_model_names(provider):
+        for model_name in get_model_names(provider, filters=name_filters):
             catalog[f"{provider.name.lower()}_{model_name}"] = model_name
 
     return catalog        

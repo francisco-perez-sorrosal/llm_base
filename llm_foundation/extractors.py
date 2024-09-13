@@ -114,6 +114,12 @@ class Step(BaseModel):
     dependent_steps: List[str] = Field(..., description="A list of step ids representing the actions that will happen after what is described this step. If the list is empty, the step is a root node.")
     depending_steps: List[str] = Field(..., description="A list of step ids representing the actions that need to happen before what is described this step. If the list is empty, the step is a leaf node.")
     
+    def is_leaf(self):
+        return not self.depending_steps
+    
+    def is_root(self):
+        return not self.dependent_steps
+    
 
 class Plan(BaseModel):
     """Plan description depicted as a directed acyclic graph (DAG) where each step has a causal dependency on other steps."""
