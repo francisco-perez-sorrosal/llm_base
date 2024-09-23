@@ -31,6 +31,8 @@ def get_model_catalog(provider: Provider, name_filters: List[str] = []):
 def get_lm(config: LMConfig):
     logger.info(f"Creating lm object for provider {config.provider.name}")
     match config.provider:
+        case Provider.Autogen:
+            lm = None
         case Provider.LC:
             lm = llm_lc.get_lm(config)
         case _:
