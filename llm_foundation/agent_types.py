@@ -55,6 +55,7 @@ class AutogenAgentType(Enum):
     
 
 class Role(BaseModel):
+    name: str
     description: str
     agent_system_message: str
     human_input_mode: Literal["ALWAYS", "NEVER", "TERMINATE"] = "TERMINATE"
@@ -152,12 +153,19 @@ class Persona(BaseModel):
         with open(path, 'w') as file:
             file.write(self.model_dump_json(indent=4))
             
-            
-        
         logger.info(f"JSON object written: {path}")
+
+
+    def get_role(self, name: str) -> Role:
+        try:
+            return self.roles[name]
+        except KeyError:
+            raise ValueError(f"Role {name} not found in Persona {self.name}")
+
         
     def get_roles(self) -> List[str]:
         return list(self.roles.keys())
+
 
     def role_to_autogen_agent(self,
                               role_name: str,
@@ -187,7 +195,7 @@ class Persona(BaseModel):
 
         def format_persona(persona: Persona, indent: int) -> str:
             indent_str = " " * indent
-            persona_str = f"{indent_str}Persona: {persona.name}\n"
+            persona_str = f"\n{indent_str}Persona: {persona.name}\n"
             for role_name, role in persona.roles.items():
                 persona_str += format_role(role_name, role, indent + 2)
             return persona_str
