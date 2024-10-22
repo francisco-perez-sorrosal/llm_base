@@ -1,4 +1,5 @@
 import json
+import yaml
 
 from typing import Any, Callable, Dict, List, Literal, Optional, Union
 from enum import Enum
@@ -6,6 +7,7 @@ from enum import Enum
 
 from autogen.agentchat import ConversableAgent, GroupChat, AssistantAgent, UserProxyAgent, GroupChatManager
 from pydantic import BaseModel
+from pydantic_yaml import parse_yaml_raw_as
 from pathlib import Path
 
 
@@ -66,6 +68,42 @@ class Role(BaseModel):
         with open(file_path, 'r') as file:
             json_data = json.load(file)
         return cls(**json_data)
+    
+    @classmethod
+    def from_yaml_file(cls, file_path: str) -> 'Role':
+        with open(file_path, 'r') as file:
+            yaml_data = yaml.safe_load(file)
+        return parse_yaml_raw_as(Role, yaml_data)
+    
+    def to_yaml(self):
+        return yaml.dump(self.model_dump())
+
+    def build_path(self, path, file_name, overwrite_existing, extension: str = "json"):
+        if path is None:
+            path = Path(self.__class__.__name__)
+        if file_name is None:
+            file_name = self.name
+        if not file_name.endswith(f".{extension}"):
+            file_name += f".{extension}"
+        path = path / file_name
+        
+        # Create the directory if it does not exist
+        path.parent.mkdir(parents=True, exist_ok=overwrite_existing)
+        logger.info(f"Path {path.parent} created")
+        
+        return path
+
+    def to_yaml_file(self,
+                     path: Optional[Path] = None, 
+                     file_name: Optional[str] = None, 
+                     overwrite_existing: bool = True):
+        
+        path = self.build_path(path, file_name, overwrite_existing, extension="yaml")
+        
+        with open(path, 'w') as file:
+            yaml.dump(self.to_yaml(), file)
+        logger.info(f"{self.name} object written to yaml: {path}")
+    
     
     def to_autogen_agent(self, 
                          name:str, 
@@ -135,26 +173,55 @@ class Persona(BaseModel):
             json_data = json.load(file)
         return cls(**json_data)
 
-    def save_as_json(self, 
-                     path: Optional[Path] = None, 
-                     file_name: Optional[str] = None, 
-                     overwrite_existing: bool = True):
+    def build_path(self, path, file_name, overwrite_existing, extension: str = "json"):
         if path is None:
             path = Path(self.__class__.__name__)
         if file_name is None:
             file_name = self.name
-        if not file_name.endswith(".json"):
-            file_name += ".json"
+        if not file_name.endswith(f".{extension}"):
+            file_name += f".{extension}"
         path = path / file_name
         
         # Create the directory if it does not exist
         path.parent.mkdir(parents=True, exist_ok=overwrite_existing)
+        logger.info(f"Path {path.parent} created")
+        
+        return path
+
+    def save_as_json(self, 
+                     path: Optional[Path] = None, 
+                     file_name: Optional[str] = None, 
+                     overwrite_existing: bool = True):
+        
+        path = self.build_path(path, file_name, overwrite_existing)
         
         with open(path, 'w') as file:
             file.write(self.model_dump_json(indent=4))
             
         logger.info(f"JSON object written: {path}")
+        
+    @classmethod
+    def from_yaml_file(cls, file_path: str) -> 'Persona':
+        with open(file_path, 'r') as file:
+            yaml_data = yaml.safe_load(file)
+        
+        logger.info(f"YAML data:\n{yaml_data}")
+        
+        return parse_yaml_raw_as(Persona, yaml_data)
+        
+    def to_yaml(self):
+        return yaml.dump(self.model_dump())
 
+    def to_yaml_file(self,
+                     path: Optional[Path] = None, 
+                     file_name: Optional[str] = None, 
+                     overwrite_existing: bool = True):
+        
+        path = self.build_path(path, file_name, overwrite_existing, extension="yaml")
+        
+        with open(path, 'w') as file:
+            yaml.dump(self.to_yaml(), file)
+        logger.info(f"{self.name} object written to yaml: {path}")
 
     def get_role(self, name: str) -> Role:
         try:

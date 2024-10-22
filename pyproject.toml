@@ -1,11 +1,14 @@
 [project]
 authors = [{name = "Francisco Perez-Sorrosal", email = "fperezsorrosal@gmail.com"}]
-dependencies = ["coloredlogs>=15.0.1,<16", "loadenv>=0.1.1,<0.2", "build>=1.2.1,<2", "python-dotenv>=1.0.1,<2", "openai>=1.42.0,<2", "pydantic>=2.8.2,<3", "langchain-openai>=0.1.22,<0.2", "ipykernel>=6.29.5,<7", "langchain-community>=0.2.12,<0.3", "beautifulsoup4>=4.12.3,<5", "langgraph>=0.2.12,<0.3", "autogen>=0.3.1,<0.4"]
+dependencies = ["coloredlogs>=15.0.1,<16", "loadenv>=0.1.1,<0.2", "build>=1.2.1,<2", "python-dotenv>=1.0.1,<2", "openai>=1.42.0,<2", "pydantic>=2.8.2,<3", "langchain-openai>=0.1.22,<0.2", "ipykernel>=6.29.5,<7", "langchain-community>=0.2.12,<0.3", "beautifulsoup4>=4.12.3,<5", "langgraph>=0.2.12,<0.3", "autogen>=0.3.1,<0.4", "pydantic-yaml>=1.3.0,<2"]
 description = "LLM Foundation Tools"
 name = "llm_foundation"
 requires-python = ">= 3.10"
-version = "0.0.12"
+version = "0.0.13"
 readme = "README.md"
+
+[project.optional-dependencies]
+test = ["pytest"]
 
 [build-system]
 build-backend = "hatchling.build"
@@ -23,3 +26,10 @@ llm = "python llm_foundation/test.py"
 
 [tool.pixi.environments]
 default = { solve-group = "default" }
+test = { features = ["test"], solve-group = "default" }
+
+[tool.pixi.feature.test.tasks]
+pytest = "pytest -o log_cli=true --log-cli-level=10"
+
+[tool.pytest.ini_options]
+log_cli = true
