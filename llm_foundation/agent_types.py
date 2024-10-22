@@ -101,7 +101,7 @@ class Role(BaseModel):
         path = self.build_path(path, file_name, overwrite_existing, extension="yaml")
         
         with open(path, 'w') as file:
-            yaml.dump(self.to_yaml(), file)
+            file.write(self.to_yaml())
         logger.info(f"{self.name} object written to yaml: {path}")
     
     
@@ -220,7 +220,7 @@ class Persona(BaseModel):
         path = self.build_path(path, file_name, overwrite_existing, extension="yaml")
         
         with open(path, 'w') as file:
-            yaml.dump(self.to_yaml(), file)
+            file.write(self.to_yaml())
         logger.info(f"{self.name} object written to yaml: {path}")
 
     def get_role(self, name: str) -> Role:
