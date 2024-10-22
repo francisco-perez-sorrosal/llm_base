@@ -7,12 +7,6 @@
 pixi install
 ```
 
-## Run
-
-```
-pixi r src/hackathon/main.py
-```
-
 ## Test
 
 ```

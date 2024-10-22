@@ -85,7 +85,7 @@ class Role(BaseModel):
             file_name = self.name
         if not file_name.endswith(f".{extension}"):
             file_name += f".{extension}"
-        path = path / file_name
+        path = Path(path) / file_name
         
         # Create the directory if it does not exist
         path.parent.mkdir(parents=True, exist_ok=overwrite_existing)
@@ -180,7 +180,7 @@ class Persona(BaseModel):
             file_name = self.name
         if not file_name.endswith(f".{extension}"):
             file_name += f".{extension}"
-        path = path / file_name
+        path = Path(path) / file_name
         
         # Create the directory if it does not exist
         path.parent.mkdir(parents=True, exist_ok=overwrite_existing)
