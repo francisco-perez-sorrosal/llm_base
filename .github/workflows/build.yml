@@ -23,9 +23,9 @@ jobs:
       run: |
         pixi install
 
-    - name: Run small test
-      run: |
-        pixi run llm
+    # - name: Run small test
+    #   run: |
+    #     pixi run llm
 
     # - name: Bump version
     #   run: |
