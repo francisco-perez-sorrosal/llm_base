@@ -73,7 +73,7 @@ class Role(BaseModel):
     def from_yaml_file(cls, file_path: str) -> 'Role':
         with open(file_path, 'r') as file:
             yaml_data = yaml.safe_load(file)
-        return parse_yaml_raw_as(Role, yaml_data)
+        return cls(**yaml_data)
     
     def to_yaml(self):
         return yaml.dump(self.model_dump())
@@ -207,7 +207,7 @@ class Persona(BaseModel):
         
         logger.info(f"YAML data:\n{yaml_data}")
         
-        return parse_yaml_raw_as(Persona, yaml_data)
+        return cls(**yaml_data)
         
     def to_yaml(self):
         return yaml.dump(self.model_dump())
