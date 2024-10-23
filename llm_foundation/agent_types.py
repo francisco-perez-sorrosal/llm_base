@@ -60,6 +60,7 @@ class Role(BaseModel):
     name: str
     description: str
     agent_system_message: str
+    examples: List[str] = []
     human_input_mode: Literal["ALWAYS", "NEVER", "TERMINATE"] = "TERMINATE"
     autogen_code_execution_config: dict = {}
 
