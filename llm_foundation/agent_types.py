@@ -65,6 +65,7 @@ class Task(BaseModel):
         logger.info(f"Creating CrewAI Task {self.name}")
         return CrewAITask(description=self.description, expected_output=self.expected_output, agent=agent)
 
+    # def __str__(self) -> str:
 
 class Role(BaseModel):
     name: str
@@ -283,12 +284,21 @@ class Persona(BaseModel):
                                                        termination_function=termination_function)
 
     def __str__(self) -> str:
+        def format_task(task_name: str, task: Task, indent: int) -> str:
+            indent_str = " " * indent
+            task_str = f"{indent_str}Task: {task_name}\n"
+            task_str += f"{indent_str}Description: {task.description}\n"
+            task_str += f"{indent_str}Expected output: {task.expected_output}\n"
+            return task_str
+        
         def format_role(role_name: str, role: Role, indent: int) -> str:
             indent_str = " " * indent
             role_str = f"{indent_str}Role: {role_name}\n"
             role_str += f"{indent_str}Description: {role.description}\n"
             role_str += f"{indent_str}Agent System Message: {role.agent_system_message}\n"
             role_str += f"{indent_str}Autogen Code Execution Config: {role.autogen_code_execution_config}\n"
+            for task in role.tasks:
+                role_str += format_task(task.name, task, indent + 2)
             return role_str
 
         def format_persona(persona: Persona, indent: int) -> str:
@@ -309,6 +319,4 @@ class Application(BaseModel):
     def from_json_file(cls, file_path: str) -> 'Application':
         with open(file_path, 'r') as file:
             json_data = json.load(file)
-        return cls(**json_data)
-    
-    
+        return cls(**json_data) 
