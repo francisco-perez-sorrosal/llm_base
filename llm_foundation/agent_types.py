@@ -1,11 +1,11 @@
 import json
 import yaml
 
-from typing import Any, Callable, Dict, List, Literal, Optional, Union
+from typing import Any, Callable, Dict, List, Literal, Optional, Tuple, Union
 from enum import Enum
 
-
 from autogen.agentchat import ConversableAgent, GroupChat, AssistantAgent, UserProxyAgent, GroupChatManager
+from crewai import Agent, Task as CrewAITask
 from pydantic import BaseModel
 from pydantic_yaml import parse_yaml_raw_as
 from pathlib import Path
@@ -56,11 +56,22 @@ class AutogenAgentType(Enum):
     GroupChatManager = 4
     
 
-class Role(BaseModel):
+class Task(BaseModel):
     name: str
     description: str
-    agent_system_message: str
+    expected_output: str
+    
+    def to_crewai_task(self, agent: Agent) -> 'CrewAITask':
+        logger.info(f"Creating CrewAI Task {self.name}")
+        return CrewAITask(description=self.description, expected_output=self.expected_output, agent=agent)
+
+
+class Role(BaseModel):
+    name: str
+    description: str  # The CrewAI's goal of the role
+    agent_system_message: str  # The CrewAI's background 
     examples: List[str] = []
+    tasks: List[Task] = []
     human_input_mode: Literal["ALWAYS", "NEVER", "TERMINATE"] = "TERMINATE"
     autogen_code_execution_config: dict = {}
 
@@ -105,7 +116,26 @@ class Role(BaseModel):
             file.write(self.to_yaml())
         logger.info(f"{self.name} object written to yaml: {path}")
     
-    
+    def to_crewai_agent(self, 
+                        verbose: bool = False,
+                        allow_delegation: bool = False,
+                        llm_config: Optional[dict] = None,
+                        associate_tasks: bool = False) -> Union['Agent', Tuple['Agent', List['Task']]]:
+        agent = Agent(
+            role=self.name,
+            goal=self.description,
+            backstory=self.agent_system_message,
+            llm=llm_config,
+            verbose=verbose,
+            allow_delegation=allow_delegation,
+        )
+        
+        if not associate_tasks:
+            return agent
+        else:
+            return agent, [task.to_crewai_task(agent) for task in self.tasks]
+        
+
     def to_autogen_agent(self, 
                          name:str, 
                          type: AutogenAgentType, 
