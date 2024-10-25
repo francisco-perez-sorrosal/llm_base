@@ -56,6 +56,11 @@ class AutogenAgentType(Enum):
     GroupChatManager = 4
     
 
+class Example(BaseModel):
+    format: Literal["text", "json", "markdown", "html"]
+    content: str
+    header: str = ""
+
 class Task(BaseModel):
     name: str
     description: str
@@ -71,7 +76,7 @@ class Role(BaseModel):
     name: str
     description: str  # The CrewAI's goal of the role
     agent_system_message: str  # The CrewAI's background 
-    examples: List[str] = []
+    examples: List[Example] = []
     tasks: List[Task] = []
     human_input_mode: Literal["ALWAYS", "NEVER", "TERMINATE"] = "TERMINATE"
     autogen_code_execution_config: dict = {}
@@ -194,6 +199,15 @@ class Role(BaseModel):
             case _:
                 raise ValueError(f"Invalid agent type: {type}")
 
+    def get_examples_as_str(self) -> str:
+        examples_str = ""
+        
+        for example in self.examples:
+            if example.header != "":
+                examples_str += f"{example.header}\n\n"
+            if example.format == "json":
+                examples_str += f"{json.dumps(json.loads(example.content), indent=4)}\n\n"
+        return examples_str
 
 class Persona(BaseModel):
     name: str

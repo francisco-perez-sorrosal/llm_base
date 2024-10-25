@@ -8,7 +8,7 @@ dependencies = ["coloredlogs>=15.0.1,<16", "loadenv>=0.1.1,<0.2", "build>=1.2.1,
 description = "LLM Foundation Tools"
 name = "llm_foundation"
 requires-python = ">= 3.10,<3.13"
-version = "0.0.19"
+version = "0.0.20"
 readme = "README.md"
 
 [project.optional-dependencies]
@@ -34,7 +34,7 @@ default = { solve-group = "default" }
 test = { features = ["test"], solve-group = "default" }
 
 [tool.pixi.feature.test.tasks]
-pytest = "pytest -o log_cli=true --log-cli-level=10"
+pytest = "pytest -vv -o log_cli=true --log-cli-level=10"
 
 [tool.pytest.ini_options]
 log_cli = true
