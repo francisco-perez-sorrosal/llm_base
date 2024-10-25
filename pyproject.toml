@@ -8,7 +8,7 @@ dependencies = ["coloredlogs>=15.0.1,<16", "loadenv>=0.1.1,<0.2", "build>=1.2.1,
 description = "LLM Foundation Tools"
 name = "llm_foundation"
 requires-python = ">= 3.10,<3.13"
-version = "0.0.20"
+version = "0.0.21"
 readme = "README.md"
 
 [project.optional-dependencies]

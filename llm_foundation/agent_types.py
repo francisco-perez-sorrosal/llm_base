@@ -207,6 +207,9 @@ class Role(BaseModel):
                 examples_str += f"{example.header}\n\n"
             if example.format == "json":
                 examples_str += f"{json.dumps(json.loads(example.content), indent=4)}\n\n"
+            else:
+                examples_str += f"{example.content}\n\n"
+
         return examples_str
 
 class Persona(BaseModel):
