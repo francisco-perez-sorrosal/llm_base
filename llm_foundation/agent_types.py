@@ -65,10 +65,13 @@ class Task(BaseModel):
     name: str
     description: str
     expected_output: str
-    
-    def to_crewai_task(self, agent: Agent) -> 'CrewAITask':
+
+    def to_crewai_task(self, agent: Agent, tools: List[Any] = []) -> 'CrewAITask':
         logger.info(f"Creating CrewAI Task {self.name}")
-        return CrewAITask(description=self.description, expected_output=self.expected_output, agent=agent)
+        return CrewAITask(description=self.description, 
+                          expected_output=self.expected_output,
+                          agent=agent,
+                          tools=tools,)
 
     # def __str__(self) -> str:
 
@@ -126,21 +129,35 @@ class Role(BaseModel):
                         verbose: bool = False,
                         allow_delegation: bool = False,
                         llm_config: Optional[dict] = None,
-                        associate_tasks: bool = False) -> Union['Agent', Tuple['Agent', List['Task']]]:
+                        allow_code_execution=False, # Allow code execution
+                        tools: List[str] = [],
+                        ) -> Union['Agent' , Tuple['Agent', List['Task']]]:
         agent = Agent(
             role=self.name,
             goal=self.description,
             backstory=self.agent_system_message,
+            allow_code_execution=allow_code_execution,
             llm=llm_config,
+            tools=tools,
             verbose=verbose,
             allow_delegation=allow_delegation,
         )
         
-        if not associate_tasks:
-            return agent
-        else:
-            return agent, [task.to_crewai_task(agent) for task in self.tasks]
+        return agent
+    
+    def get_crew_ai_tasks(self, agent: Agent, tools: List[Any] = []) -> List[CrewAITask]:
+        # TODO Combine this in a single method with the one below
+        tasks = []
+        for task in self.tasks:
+            tasks.append(task.to_crewai_task(agent, tools))
+        return tasks
         
+    def get_crew_ai_task(self, name: str, agent: Agent, tools: List[Any] = []) -> Optional[CrewAITask]:
+        # TODO Combine this in a single method with the one above
+        for task in self.tasks:
+            if task.name == name:
+                return task.to_crewai_task(agent, tools)
+        return None
 
     def to_autogen_agent(self, 
                          name:str, 
