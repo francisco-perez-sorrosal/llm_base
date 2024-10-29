@@ -66,12 +66,18 @@ class Task(BaseModel):
     description: str
     expected_output: str
 
-    def to_crewai_task(self, agent: Agent, tools: List[Any] = []) -> 'CrewAITask':
+    def to_crewai_task(self,
+                       agent: Agent,
+                       tools: List[Any] = [],
+                       output_json: type[BaseModel] | None = None,
+                       output_pydantic: type[BaseModel] | None = None,) -> 'CrewAITask':
         logger.info(f"Creating CrewAI Task {self.name}")
-        return CrewAITask(description=self.description, 
+        return CrewAITask(description=self.description,
                           expected_output=self.expected_output,
                           agent=agent,
-                          tools=tools,)
+                          tools=tools,
+                          output_json=output_json,
+                          output_pydantic=output_pydantic)
 
     # def __str__(self) -> str:
 
@@ -115,8 +121,8 @@ class Role(BaseModel):
         return path
 
     def to_yaml_file(self,
-                     path: Optional[Path] = None, 
-                     file_name: Optional[str] = None, 
+                     path: Optional[Path] = None,
+                     file_name: Optional[str] = None,
                      overwrite_existing: bool = True):
         
         path = self.build_path(path, file_name, overwrite_existing, extension="yaml")
@@ -145,18 +151,27 @@ class Role(BaseModel):
         
         return agent
     
-    def get_crew_ai_tasks(self, agent: Agent, tools: List[Any] = []) -> List[CrewAITask]:
+    def get_crew_ai_tasks(self, 
+                          agent: Agent, 
+                          tools: List[Any] = [],  
+                          output_json: type[BaseModel] | None = None,
+                          output_pydantic: type[BaseModel] | None = None,) -> List[CrewAITask]:
         # TODO Combine this in a single method with the one below
         tasks = []
         for task in self.tasks:
-            tasks.append(task.to_crewai_task(agent, tools))
+            tasks.append(task.to_crewai_task(agent, tools, output_json, output_pydantic))
         return tasks
         
-    def get_crew_ai_task(self, name: str, agent: Agent, tools: List[Any] = []) -> Optional[CrewAITask]:
+    def get_crew_ai_task(self, 
+                         name: str, 
+                         agent: Agent, 
+                         tools: List[Any] = [],
+                         output_json: type[BaseModel] | None = None,
+                         output_pydantic: type[BaseModel] | None = None,) -> Optional[CrewAITask]:
         # TODO Combine this in a single method with the one above
         for task in self.tasks:
             if task.name == name:
-                return task.to_crewai_task(agent, tools)
+                return task.to_crewai_task(agent, tools, output_json, output_pydantic)
         return None
 
     def to_autogen_agent(self, 
