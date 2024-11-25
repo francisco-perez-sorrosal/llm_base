@@ -6,6 +6,42 @@ from pathlib import Path
 from llm_foundation import logger
 from llm_foundation.agent_types import Example, Persona, Role
 
+yaml_content = """
+    name: Test Persona
+    roles:
+        role1:
+            name: role1
+            description: Role 1 Description
+            agent_system_message: Agent System Message
+            tasks:
+                task1:
+                    name: task 1
+                    description: This is task 1
+                    expected_output: This is expected output for task 1
+                task2:
+                    name: task 2
+                    description: This is task 2
+                    expected_output: This is expected output for task 2
+        role2:
+            name: role2
+            description: Role 2 Description
+            agent_system_message: Agent System Message again
+            examples:
+                - header: example 1
+                  format: text
+                  content: This is an example of example 1
+                - header: example 2
+                  format: json
+                  content: |
+                    {
+                        'header': 'example 2', 
+                        'format': 'json', 
+                        'content': 'This is an example of example 2'
+                    }
+            
+    """
+
+
 def test_persona_to_yaml():
     role1 = Role(name="role1", description="Role 1 Description", agent_system_message="Agent System Message")
     role2 = Role(name="role2", description="Role 2 Description", agent_system_message="Agent System Message again")
@@ -32,38 +68,6 @@ def test_persona_to_yaml():
             assert role.agent_system_message == same_role.agent_system_message, f"Agent system message mismatch for {role_name}"
 
 def test_persona_from_yaml():
-    yaml_content = """
-    name: Test Persona
-    roles:
-        role1:
-            name: role1
-            description: Role 1 Description
-            agent_system_message: Agent System Message
-            tasks:
-                - name: task1
-                  description: This is task 1
-                  expected_output: This is expected output for task 1
-                - name: task2
-                  description: This is task 2
-                  expected_output: This is expected output for task 2
-        role2:
-            name: role2
-            description: Role 2 Description
-            agent_system_message: Agent System Message again
-            examples:
-                - header: example 1
-                  format: text
-                  content: This is an example of example 1
-                - header: example 2
-                  format: json
-                  content: |
-                    {
-                        'header': 'example 2', 
-                        'format': 'json', 
-                        'content': 'This is an example of example 2'
-                    }
-            
-    """
     
     with tempfile.TemporaryDirectory() as temp_dir:
         file_path = Path(temp_dir) / "test_persona.yaml"
@@ -83,13 +87,13 @@ def test_persona_from_yaml():
         assert role1.agent_system_message == "Agent System Message", "Role1 agent system message mismatch"
         assert len(role1.tasks) == 2, "Number of tasks in role1 mismatch"
         
-        task1 = role1.tasks[0]
-        assert task1.name == "task1", "Task1 name mismatch"
+        task1 = role1.tasks["task1"]
+        assert task1.name == "task 1", "Task1 name mismatch"
         assert task1.description == "This is task 1", "Task1 description mismatch"
         assert task1.expected_output == "This is expected output for task 1", "Task1 expected output mismatch"
         
-        task2 = role1.tasks[1]
-        assert task2.name == "task2", "Task2 name mismatch"
+        task2 = role1.tasks["task2"]
+        assert task2.name == "task 2", "Task2 name mismatch"
         assert task2.description == "This is task 2", "Task2 description mismatch"
         assert task2.expected_output == "This is expected output for task 2", "Task2 expected output mismatch"
                 
@@ -144,4 +148,20 @@ def test_get_examples_as_str_from_role():
     expected_str = "example 1" + "\n\n" + json.dumps({"key": "value"}, indent=4) + "\n\n" + "example 2" + "\n\n" + json.dumps({"another_key": "another_value"}, indent=4) + "\n\n"
     
     assert examples_str == expected_str, "Examples string mismatch"
+
+
+def test_to_crew_ai_task_from_yaml():
     
+    with tempfile.TemporaryDirectory() as temp_dir:
+        file_path = Path(temp_dir) / "test_persona.yaml"
+        with open(file_path, 'w') as file:
+            file.write(yaml_content)
+        
+        persona = Persona.from_yaml_file(str(file_path))
+        
+        role1 = persona.roles.get("role1")
+        
+        crewai_task1 = role1.get_crew_ai_task("task1", None)
+        
+        from crewai import Task as CrewAITask
+        assert isinstance(crewai_task1, CrewAITask), "Task 1 is not a CrewAI Task!"

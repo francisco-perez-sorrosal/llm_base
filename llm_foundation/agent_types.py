@@ -86,7 +86,7 @@ class Role(BaseModel):
     description: str  # The CrewAI's goal of the role
     agent_system_message: str  # The CrewAI's background 
     examples: List[Example] = []
-    tasks: List[Task] = []
+    tasks: Dict[str, Task] = {}
     human_input_mode: Literal["ALWAYS", "NEVER", "TERMINATE"] = "TERMINATE"
     autogen_code_execution_config: dict = {}
 
@@ -155,12 +155,11 @@ class Role(BaseModel):
                           agent: Agent, 
                           tools: List[Any] = [],  
                           output_json: type[BaseModel] | None = None,
-                          output_pydantic: type[BaseModel] | None = None,) -> List[CrewAITask]:
-        # TODO Combine this in a single method with the one below
-        tasks = []
-        for task in self.tasks:
-            tasks.append(task.to_crewai_task(agent, tools, output_json, output_pydantic))
-        return tasks
+                          output_pydantic: type[BaseModel] | None = None,) -> Dict[str, CrewAITask]:
+        crewai_tasks = {}
+        for task_name, task in self.tasks.items():
+            crewai_tasks[task_name] = task.to_crewai_task(agent, tools, output_json, output_pydantic)
+        return crewai_tasks
         
     def get_crew_ai_task(self, 
                          name: str, 
@@ -169,10 +168,10 @@ class Role(BaseModel):
                          output_json: type[BaseModel] | None = None,
                          output_pydantic: type[BaseModel] | None = None,) -> Optional[CrewAITask]:
         # TODO Combine this in a single method with the one above
-        for task in self.tasks:
-            if task.name == name:
-                return task.to_crewai_task(agent, tools, output_json, output_pydantic)
-        return None
+        task = self.tasks.get(name, None)
+        if task is not None:
+            return task.to_crewai_task(agent, tools, output_json, output_pydantic)
+        return task
 
     def to_autogen_agent(self, 
                          name:str, 
