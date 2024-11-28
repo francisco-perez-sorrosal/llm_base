@@ -3788,9 +3788,9 @@ packages:
   requires_python: '>=3.8,!=2.7.*,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,!=3.5.*,!=3.6.*,!=3.7.*'
 - kind: pypi
   name: llm-foundation
-  version: 0.0.25
+  version: 0.0.26
   path: .
-  sha256: 496a311b90a688d88f79f63f4c7bfad7e57d0f3bb8a0690f7b35ebd098a93d04
+  sha256: de6ea2a118315469ad35a85a390a2b3bf8a799203338dd3483a45ae284c7413b
   requires_dist:
   - coloredlogs>=15.0.1,<16
   - loadenv>=0.1.1,<0.2

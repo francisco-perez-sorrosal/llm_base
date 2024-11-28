@@ -69,6 +69,8 @@ class Task(BaseModel):
     def to_crewai_task(self,
                        agent: Agent,
                        tools: List[Any] = [],
+                       parallel: bool = False,
+                       context: List[CrewAITask] = [],
                        output_json: type[BaseModel] | None = None,
                        output_pydantic: type[BaseModel] | None = None,) -> 'CrewAITask':
         logger.info(f"Creating CrewAI Task {self.name}")
@@ -76,10 +78,11 @@ class Task(BaseModel):
                           expected_output=self.expected_output,
                           agent=agent,
                           tools=tools,
+                          async_execution=parallel,
+                          context=context,
                           output_json=output_json,
                           output_pydantic=output_pydantic)
 
-    # def __str__(self) -> str:
 
 class Role(BaseModel):
     name: str
@@ -154,23 +157,27 @@ class Role(BaseModel):
     def get_crew_ai_tasks(self, 
                           agent: Agent, 
                           tools: List[Any] = [],  
+                          parallel: bool = False,
+                          context: List[CrewAITask] = [],
                           output_json: type[BaseModel] | None = None,
                           output_pydantic: type[BaseModel] | None = None,) -> Dict[str, CrewAITask]:
         crewai_tasks = {}
         for task_name, task in self.tasks.items():
-            crewai_tasks[task_name] = task.to_crewai_task(agent, tools, output_json, output_pydantic)
+            crewai_tasks[task_name] = task.to_crewai_task(agent, tools, parallel, context, output_json, output_pydantic)
         return crewai_tasks
         
     def get_crew_ai_task(self, 
                          name: str, 
                          agent: Agent, 
                          tools: List[Any] = [],
+                         parallel: bool = False,
+                         context: List[CrewAITask] = [],                         
                          output_json: type[BaseModel] | None = None,
                          output_pydantic: type[BaseModel] | None = None,) -> Optional[CrewAITask]:
         # TODO Combine this in a single method with the one above
         task = self.tasks.get(name, None)
         if task is not None:
-            return task.to_crewai_task(agent, tools, output_json, output_pydantic)
+            return task.to_crewai_task(agent, tools, parallel, context, output_json, output_pydantic)
         return task
 
     def to_autogen_agent(self, 
