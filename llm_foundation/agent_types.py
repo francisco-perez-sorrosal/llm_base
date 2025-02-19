@@ -139,6 +139,7 @@ class Role(BaseModel):
                         allow_delegation: bool = False,
                         llm_config: Optional[dict] = None,
                         allow_code_execution=False, # Allow code execution
+                        code_execution_mode: Literal['safe', 'unsafe'] = 'unsafe',
                         tools: List[str] = [],
                         ) -> Union['Agent' , Tuple['Agent', List['Task']]]:
         agent = Agent(
@@ -150,6 +151,7 @@ class Role(BaseModel):
             tools=tools,
             verbose=verbose,
             allow_delegation=allow_delegation,
+            code_execution_mode=code_execution_mode,
         )
         
         return agent
